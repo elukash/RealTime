@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Concurrency;
+using System.Threading.Tasks;
 using RealTime;
 
 namespace SampleApp
@@ -8,7 +9,7 @@ namespace SampleApp
     {
         static void Main(string[] args)
         {
-            var tenSeconds = TimeSpan.FromSeconds(10).Negate();
+            var tenSeconds = TimeSpan.FromSeconds(10);
             var scheduler = new ActionScheduler(tenSeconds);
 
             scheduler.Schedule(
@@ -18,6 +19,15 @@ namespace SampleApp
             scheduler.Schedule(
                 TimeSpan.FromSeconds(5),
                 () => WriteLine("Fifth second"));
+
+            // this task run with delay but will be executed in correct time in the next iteration
+            scheduler.Schedule(
+                TimeSpan.FromSeconds(5),
+                async () =>
+                {
+                    WriteLine("Fifth second with delay");
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                });
 
             scheduler.Start();
             Console.ReadKey();
