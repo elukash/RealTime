@@ -101,13 +101,9 @@ namespace RealTime
         {
             Stop();
         }
-
-        /// <summary>
-        /// Sample begining datetimeoffset
-        /// </summary>
+        
         public DateTimeOffset GetSampleBeginTime()
         {
-            
             var now = _systemScheduler.Now;
 
             return new DateTimeOffset(now.Ticks - (now.Ticks % _sampling.Ticks), DateTimeOffset.UtcNow.Offset);
