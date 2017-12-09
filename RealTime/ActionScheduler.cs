@@ -26,20 +26,7 @@ namespace RealTime
             _systemScheduler = systemScheduler ?? Scheduler.Default;
             _sampling = sampling;
         }
-
-        /// <summary>
-        /// Sample begining datetimeoffset
-        /// </summary>
-        public DateTimeOffset SampleTime
-        {
-            get
-            {
-                var now = _systemScheduler.Now;
-
-                return new DateTimeOffset(now.Ticks - (now.Ticks % _sampling.Ticks), DateTimeOffset.UtcNow.Offset);
-            }
-        }
-
+        
         /// <summary>
         /// Schedules the task with specified delay.
         /// </summary>
@@ -72,13 +59,13 @@ namespace RealTime
             _workingTasks = _tasks.Select(
                 workItem =>
                 {
-                    var taskTime = SampleTime.Add(workItem.Delay);
-                    if (taskTime >= _systemScheduler.Now)
+                    var taskNextTime = GetSampleBeginTime().Add(workItem.Delay);
+                    if (taskNextTime >= _systemScheduler.Now)
                     {
                         // task time in the future, just schedule and return 
                         return _systemScheduler.Schedule(
                             0,
-                            taskTime,
+                            taskNextTime,
                             (scheduler, state) => RunAndSchedule(workItem.Task, _sampling));
                     }
 
@@ -88,11 +75,11 @@ namespace RealTime
                         workItem.Task();
                     }
 
-                    taskTime = taskTime.Add(_sampling);
+                    taskNextTime = taskNextTime.Add(_sampling);
 
                     return _systemScheduler.Schedule(
                         0,
-                        taskTime,
+                        taskNextTime,
                         (scheduler, state) => RunAndSchedule(workItem.Task, _sampling));
                 }).ToArray();
         }
@@ -113,6 +100,17 @@ namespace RealTime
         public void Dispose()
         {
             Stop();
+        }
+
+        /// <summary>
+        /// Sample begining datetimeoffset
+        /// </summary>
+        public DateTimeOffset GetSampleBeginTime()
+        {
+            
+            var now = _systemScheduler.Now;
+
+            return new DateTimeOffset(now.Ticks - (now.Ticks % _sampling.Ticks), DateTimeOffset.UtcNow.Offset);
         }
 
         /// <summary>
