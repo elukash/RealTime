@@ -1,3 +1,3 @@
 # RealTime
 
-Implementation of simple task scheduler. Allows to run task with delay within time sample. Time drift is normalized.
+RX-based task scheduler. Allows to schedule actions with delays within sampling period. See SampleApp and tests for more details.
