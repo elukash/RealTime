@@ -9,7 +9,12 @@ namespace SampleApp
     {
         static void Main(string[] args)
         {
-            var tenSeconds = TimeSpan.FromSeconds(10);
+            MainAsync().GetAwaiter().GetResult();
+        }
+
+        private static async Task MainAsync()
+        {
+            var tenSeconds = TimeSpan.FromSeconds(60);
             var scheduler = new ActionScheduler(tenSeconds);
 
             scheduler.Schedule(
@@ -29,7 +34,7 @@ namespace SampleApp
                     await Task.Delay(TimeSpan.FromSeconds(1));
                 });
 
-            scheduler.Start();
+            await scheduler.StartAsync();
             Console.ReadKey();
             scheduler.Stop();
         }

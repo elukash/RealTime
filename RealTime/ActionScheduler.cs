@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace RealTime
 {
@@ -54,10 +55,10 @@ namespace RealTime
         /// <summary>
         /// Starts running tasks.
         /// </summary>
-        public void Start()
+        public async Task StartAsync()
         {
-            _workingTasks = _tasks.Select(
-                workItem =>
+            _workingTasks = await Task.WhenAll(_tasks.Select(
+                async workItem =>
                 {
                     var taskNextTime = GetSampleBeginTime().Add(workItem.Delay);
                     if (taskNextTime >= _systemScheduler.Now)
@@ -72,7 +73,7 @@ namespace RealTime
                     // task time elapsed in the sample. we should run immediately if task is inclusive and perform time correction 
                     if (workItem.Inclusive)
                     {
-                        workItem.Task();
+                        await Task.Run(() => workItem.Task());
                     }
 
                     taskNextTime = taskNextTime.Add(_sampling);
@@ -81,7 +82,7 @@ namespace RealTime
                         0,
                         taskNextTime,
                         (scheduler, state) => RunAndSchedule(workItem.Task, _sampling));
-                }).ToArray();
+                }).ToArray());
         }
 
         public void Stop()

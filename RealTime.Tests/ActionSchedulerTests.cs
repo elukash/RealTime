@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Reactive.Testing;
 using Moq;
 using NUnit.Framework;
@@ -11,7 +12,7 @@ namespace RealTime.Tests
     {
         [Test]
         [TestCaseSource(nameof(SchedulerTestCases))]
-        public void Can_Schedule_Task(TimeSpan startTime, bool inclusive, TimeSpan sampling, TimeSpan delay, TimeSpan workDuration, int occurs)
+        public async Task Can_Schedule_Task(TimeSpan startTime, bool inclusive, TimeSpan sampling, TimeSpan delay, TimeSpan workDuration, int occurs)
         {
             var invoker = GetFakeInvoker();
             var testScheduler = new TestScheduler();
@@ -21,7 +22,7 @@ namespace RealTime.Tests
                 scheduler.Schedule(delay, () => invoker.Object.Invoke(), inclusive);
 
                 testScheduler.AdvanceBy(startTime.Ticks);
-                scheduler.Start();
+                await scheduler.StartAsync();
 
                 testScheduler.AdvanceBy(workDuration.Ticks - startTime.Ticks);
             }
@@ -30,7 +31,7 @@ namespace RealTime.Tests
         }
 
         [Test]
-        public void Can_Schedule_Multiple_Tasks()
+        public async Task Can_Schedule_Multiple_Tasks()
         {
             var task1 = GetFakeInvoker();
             var task2 = GetFakeInvoker();
@@ -41,7 +42,7 @@ namespace RealTime.Tests
                 scheduler.Schedule(TimeSpan.FromSeconds(1), () => task1.Object.Invoke());
                 scheduler.Schedule(TimeSpan.FromSeconds(2), () => task2.Object.Invoke());
 
-                scheduler.Start();
+                await scheduler.StartAsync();
 
                 testScheduler.AdvanceBy(TimeSpan.FromSeconds(10).Ticks);
             }
@@ -51,7 +52,7 @@ namespace RealTime.Tests
         }
 
         [Test]
-        public void Scheduled_Tasks_Runs_Exactly_In_Time()
+        public async Task Scheduled_Tasks_Runs_Exactly_In_Time()
         {
             var task1 = GetFakeTimeInvoker();
             var task2 = GetFakeTimeInvoker();
@@ -70,7 +71,7 @@ namespace RealTime.Tests
                 scheduler.Schedule(TimeSpan.FromSeconds(secondDelay), () => task2.Object.Invoke(testScheduler.Now));
 
                 startTime = testScheduler.Now;
-                scheduler.Start();
+                await scheduler.StartAsync();
 
                 testScheduler.AdvanceBy(TimeSpan.FromSeconds(10).Ticks);
             }
